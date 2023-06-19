@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import a from '@/views/a.vue'
-import b from '@/views/b.vue'
-import c from '@/views/c.vue'
+import aView from '@/views/aView.vue'
+import bView from '@/views/bView.vue'
+import cView from '@/views/cView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,15 +22,15 @@ const router = createRouter({
     },
     {
       path: '/a',
-      component: a
+      component: aView
     },
     {
       path: '/b',
-      component: b
+      component: bView
     },
     {
       path: '/c',
-      component: c
+      component: cView
     }
   ]
 })
