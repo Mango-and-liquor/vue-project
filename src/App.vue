@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import type { } from 'vue'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
+const router = useRouter()
+const getKey = (event: any) => {
+  router.push({ name: "userList", params: { firstName: event.target.innerText } })
+}
 </script>
 
 <template>
@@ -13,9 +18,9 @@ import { RouterLink, RouterView } from 'vue-router'
     <div class="body">
       <div class="body-sider">
         <ul>
-          <li><router-link to="/a">a</router-link></li>
-          <li><router-link to="/b">b</router-link></li>
-          <li><router-link to="/c">c</router-link></li>
+          <li><router-link to="/a/:firstName" @click="getKey">张</router-link></li>
+          <li><router-link to="/a/:firstName" @click="getKey">孙</router-link></li>
+          <li><router-link to="/a/:firstName" @click="getKey">李</router-link></li>
         </ul>
       </div>
       <div class="line"></div>
