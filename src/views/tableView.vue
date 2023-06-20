@@ -1,6 +1,6 @@
 <template>
   <div class="grid-content ep-bg-purple">
-    <el-table :data="tableData()" stripe v-loading="loading" height="550px" style="width: 985px">
+    <el-table :data="tableData()" stripe v-loading="loading" height="550px" style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="username" label="Username" width="130" />
       <el-table-column prop="email" label="Email" width="180" />
@@ -10,17 +10,8 @@
       <el-table-column prop="updatedAt" label="操作" width="180">
         <template #default="scope">
           <el-button size="small" @click="updateUserinfo(scope.$index, scope.row)">Edit</el-button>
-          <el-popconfirm title="Are you sure to delete this?" @confirm="deleteUserinfo(scope.$index, scope.row)">
-            <template #reference>
-              <el-button size="small" type="danger">Delete</el-button>
-            </template>
-          </el-popconfirm>
+          <el-button size="small" type="danger" @click="open(scope.$index, scope.row)">Delete</el-button>
         </template>
-        <!-- <el-popconfirm title="Are you sure to delete this?">
-          <template #reference>
-            <el-button>Delete</el-button>
-          </template>
-        </el-popconfirm> -->
       </el-table-column>
     </el-table>
     <!-- 分页操作 -->
@@ -34,9 +25,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, h } from "vue";
 import request from "../utils/request";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { useRoute } from "vue-router";
 import type { RouteParamValue } from 'vue-router';
 
@@ -68,13 +59,13 @@ const size = ref<'default' | 'large' | 'small'>('default')
 const value1 = ref('')
 
 //向http://locahost:1336/api/users发送get请求获取所有用户,并设置banner
-const getUserData = (firstName: RouteParamValue) => {
+const getUserData = (lastName: RouteParamValue) => {
   request("http://localhost:1336/api/users", "get")
     .then((response: any) => {
       UserList.value = response;
-      //过滤resopnse中的数据，去除username不是为firstName开头的数据，并赋值给user.value
-      user.value = UserList.value.filter((item: userList) => item.username.startsWith(firstName));
-      loading.value = false;
+      //过滤resopnse中的数据，去除username不是为lastName开头的数据，并赋值给user.value
+      user.value = UserList.value.filter((item: userList) => item.username.startsWith(lastName));
+      loading.value = false;  
     })
     .catch((error: any) => {
       console.log(error);
@@ -83,9 +74,8 @@ const getUserData = (firstName: RouteParamValue) => {
 
 onMounted(() => {
   //接受路由传递的id参数
-  getUserData(route.params.firstName as string);
+  getUserData(route.params.lastName as string);
 });
-
 
 //分页操作
 //前端限制分页（tableData为当前展示页表格数据）
@@ -108,12 +98,46 @@ const handleCurrentChange = (val: number) => {
   currentPage.value = val;
 };
 
-//更新操作
+//更新user操作
+//jsx语法
 const updateUserinfo = (rowindex: number, row: userList) => {
   console.log(rowindex, row);
+  ElMessageBox({
+    title: "用户信息",
+    message: h("div", null, [
+      h("input", null, `用户名：${row.username}`),
+      h("p", null, `邮箱：${row.email}`),
+      h("p", null, `创建时间：${row.createdAt}`),
+      h("p", null, `更新时间：${row.updatedAt}`),
+    ]),
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "info",
+  })
+    .then(() => {
+      deleteUserinfo(rowindex, row);
+      ElMessage({
+        type: 'info',
+        message: "删除成功！",
+      })
+    })
 };
-
-//删除操作
+//删除确认弹出框
+const open = (rowindex: number, row: userList) => {
+  ElMessageBox.confirm("此操作将永久删除该用户, 是否继续?", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(() => {
+      deleteUserinfo(rowindex, row);
+      ElMessage({
+        type: 'info',
+        message: "删除成功！",
+      })
+    })
+};
+//删除user操作
 const deleteUserinfo = (rowindex: number, row: userList) => {
   request(`http://localhost:1336/api/users/${row.id}`, "delete")
     .then((response) => {
@@ -124,7 +148,7 @@ const deleteUserinfo = (rowindex: number, row: userList) => {
         message: "删除成功！",
         type: "success",
       });
-      getUserData(route.params.firstName as string);
+      getUserData(route.params.lastName as string);
     })
     .catch((error: Promise<any>) => {
       console.log(error);
@@ -134,8 +158,9 @@ const deleteUserinfo = (rowindex: number, row: userList) => {
       });
     });
 };
+//监听路由参数lastName变化，根据路由参数变化，过滤userList中的数据
 watch(
-  () => route.params.firstName,
+  () => route.params.lastName,
   (newValue) => {
     user.value = UserList.value.filter((item: userList) => item.username.startsWith(newValue as string));
   }

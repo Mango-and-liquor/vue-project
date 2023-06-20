@@ -20,7 +20,7 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     },
     {
-      path: '/a/:firstName',
+      path: '/a/:lastName',
       name: 'userList',
       component: tableView
     }

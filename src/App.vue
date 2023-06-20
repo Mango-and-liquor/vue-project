@@ -3,7 +3,7 @@ import type { } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 const router = useRouter()
 const getKey = (event: any) => {
-  router.push({ name: "userList", params: { firstName: event.target.innerText } })
+  router.push({ name: "userList", params: { lastName: event.target.innerText } })
 }
 </script>
 
@@ -18,9 +18,9 @@ const getKey = (event: any) => {
     <div class="body">
       <div class="body-sider">
         <ul>
-          <li><router-link to="/a/:firstName" @click="getKey">张</router-link></li>
-          <li><router-link to="/a/:firstName" @click="getKey">孙</router-link></li>
-          <li><router-link to="/a/:firstName" @click="getKey">李</router-link></li>
+          <li><router-link to="/a/:lastName" @click="getKey">张</router-link></li>
+          <li><router-link to="/a/:lastName" @click="getKey">孙</router-link></li>
+          <li><router-link to="/a/:lastName" @click="getKey">李</router-link></li>
         </ul>
       </div>
       <div class="line"></div>
