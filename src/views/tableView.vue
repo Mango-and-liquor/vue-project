@@ -122,7 +122,7 @@ const updateUserinfo = (rowindex: number, row: userList) => {
       });
     });
 };
-//jsx语法
+//VNode （或jsx）
 const openUpdate = (rowindex: number, row: userList) => {
   changeUserName.value = row.username;
   changeEmail.value = row.email;
