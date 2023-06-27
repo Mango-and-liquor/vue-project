@@ -168,6 +168,7 @@ const deleteUserinfo = (rowindex: number, row: userList) => {
         message: "删除成功！！！",
         type: "success",
       });
+      //删除后重新获取数据
       getUserData(route.params.lastName as string);
     })
     .catch((error: Promise<any>) => {

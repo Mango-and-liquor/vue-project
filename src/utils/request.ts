@@ -20,9 +20,10 @@ instance.interceptors.response.use((res) => res.data)
 interface dataFormat {
   username: string
   email: string
+  password?: string
 }
 // 请求工具函数
-export default (url: string, method: string, submitData?: string | string[] | dataFormat) => {
+export default (url: string, method: string, submitData?: dataFormat) => {
   // 负责发请求：请求地址，请求方式，提交的数据
   return instance({
     url,
