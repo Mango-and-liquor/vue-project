@@ -1,6 +1,6 @@
 <template>
   <div class="grid-content ep-bg-purple">
-    <el-table :data="tableData()" stripe v-loading="loading" height="550px" style="width: 100%">
+    <el-table :data="tableData()" stripe v-loading="loading" style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="username" label="Username" width="130" />
       <el-table-column prop="email" label="Email" width="180" />
@@ -9,8 +9,8 @@
       <el-table-column prop="createdAt" label="创建时间" width="205" />
       <el-table-column prop="updatedAt" label="操作" width="180">
         <template #default="scope">
-          <el-button size="small" @click="updateUserinfo(scope.$index, scope.row)">Edit</el-button>
-          <el-button size="small" type="danger" @click="open(scope.$index, scope.row)">Delete</el-button>
+          <el-button size="small" @click="openUpdate(scope.$index, scope.row)">Edit</el-button>
+          <el-button size="small" type="danger" @click="openDelete(scope.$index, scope.row)">Delete</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -20,7 +20,7 @@
       layout="total, sizes, prev, pager, next, jumper" :total="user.length" :hide-on-single-page="true" />
     <!-- 日历组件 -->
     <!-- <el-calendar v-model="calenderData" /> -->
-    <el-date-picker v-model="value1" type="date" placeholder="Pick a day" :size="size" />
+    <!-- <el-date-picker v-model="value1" type="date" placeholder="Pick a day" :size="size" /> -->
   </div>
 </template>
 
@@ -55,8 +55,8 @@ let pageSize = ref<number>(10);
 let currentPage = ref<number>(1);
 
 // let calenderData = ref<Date>(new Date());
-const size = ref<'default' | 'large' | 'small'>('default')
-const value1 = ref('')
+// const size = ref<'default' | 'large' | 'small'>('default')
+// const value1 = ref('')
 
 //向http://locahost:1336/api/users发送get请求获取所有用户,并设置banner
 const getUserData = (lastName: RouteParamValue) => {
@@ -65,7 +65,7 @@ const getUserData = (lastName: RouteParamValue) => {
       UserList.value = response;
       //过滤resopnse中的数据，去除username不是为lastName开头的数据，并赋值给user.value
       user.value = UserList.value.filter((item: userList) => item.username.startsWith(lastName));
-      loading.value = false;  
+      loading.value = false;
     })
     .catch((error: any) => {
       console.log(error);
@@ -98,54 +98,74 @@ const handleCurrentChange = (val: number) => {
   currentPage.value = val;
 };
 
+const changeUserName = ref<string>("");
+const changeEmail = ref<string>("");
+
 //更新user操作
-//jsx语法
 const updateUserinfo = (rowindex: number, row: userList) => {
-  console.log(rowindex, row);
+  request(`http://localhost:1336/api/users/${row.id}`, "put", {
+    "username": `${changeUserName.value}`,
+    "email": `${changeEmail.value}`
+  })
+    .then(() => {
+      ElMessage({
+        message: "修改成功！",
+        type: "success",
+      });
+      getUserData(route.params.lastName as string);
+    })
+    .catch((error: Promise<any>) => {
+      console.log(error);
+      ElMessage({
+        message: "修改失败！",
+        type: "error",
+      });
+    });
+};
+//jsx语法
+const openUpdate = (rowindex: number, row: userList) => {
+  changeUserName.value = row.username;
+  changeEmail.value = row.email;
   ElMessageBox({
     title: "用户信息",
     message: h("div", null, [
-      h("input", null, `用户名：${row.username}`),
-      h("p", null, `邮箱：${row.email}`),
+      h("div", null, [
+        h("label", null, "用户名："),
+        h("input", {
+          value: `${changeUserName.value}`,
+          onchange: (e: any) => {
+            changeUserName.value = e.target.value;
+          },
+        })
+      ]),
+      h("div", null, [
+        h("label", null, "邮箱："),
+        h("input", {
+          value: `${changeEmail.value}`,
+          onchange: (e: any) => {
+            changeEmail.value = e.target.value;
+          },
+          style: { marginLeft: "14px" }
+        })
+      ]),
       h("p", null, `创建时间：${row.createdAt}`),
       h("p", null, `更新时间：${row.updatedAt}`),
     ]),
+    // message
     confirmButtonText: "确定",
-    cancelButtonText: "取消",
+    showCancelButton: false,
     type: "info",
   })
     .then(() => {
-      deleteUserinfo(rowindex, row);
-      ElMessage({
-        type: 'info',
-        message: "删除成功！",
-      })
-    })
-};
-//删除确认弹出框
-const open = (rowindex: number, row: userList) => {
-  ElMessageBox.confirm("此操作将永久删除该用户, 是否继续?", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  })
-    .then(() => {
-      deleteUserinfo(rowindex, row);
-      ElMessage({
-        type: 'info',
-        message: "删除成功！",
-      })
+      updateUserinfo(rowindex, row)
     })
 };
 //删除user操作
 const deleteUserinfo = (rowindex: number, row: userList) => {
   request(`http://localhost:1336/api/users/${row.id}`, "delete")
-    .then((response) => {
-      console.log(response);
-      // user.value = response.data;
-      console.log(rowindex, row);
+    .then(() => {
       ElMessage({
-        message: "删除成功！",
+        message: "删除成功！！！",
         type: "success",
       });
       getUserData(route.params.lastName as string);
@@ -158,6 +178,18 @@ const deleteUserinfo = (rowindex: number, row: userList) => {
       });
     });
 };
+//删除确认弹出框
+const openDelete = (rowindex: number, row: userList) => {
+  ElMessageBox.confirm("此操作将永久删除该用户, 是否继续?", "提示", {
+    confirmButtonText: "确定",
+    showCancelButton: false,
+    type: "warning",
+  })
+    .then(() => {
+      deleteUserinfo(rowindex, row);
+    })
+};
+
 //监听路由参数lastName变化，根据路由参数变化，过滤userList中的数据
 watch(
   () => route.params.lastName,
@@ -168,10 +200,6 @@ watch(
 </script>
 
 <style scoped lang="less">
-body {
-  margin: 0;
-}
-
 .example-showcase .el-loading-mask {
   z-index: 9;
 }
